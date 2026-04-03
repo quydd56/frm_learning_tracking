@@ -1,49 +1,43 @@
 async function loadData() {
   const res = await fetch("frm_full.json");
-  let data = await res.json();
+  const data = await res.json();
 
-  // ===== sort để đảm bảo hierarchy =====
-  data = data.sort((a, b) => {
-    if (a.chapter !== b.chapter) return a.chapter - b.chapter;
-    return a.level - b.level;
-  });
+  const tbody = document.getElementById("table-body");
 
-  const tbody = document.querySelector("#data-table tbody");
-
-  data.forEach((row, index) => {
+  data.forEach((row, i) => {
     const tr = document.createElement("tr");
 
     tr.dataset.level = row.level;
-    tr.dataset.index = index;
+    tr.dataset.index = i;
 
-    // ===== topic cell =====
-    const tdTopic = document.createElement("td");
-    tdTopic.className = "level-" + row.level;
+    // ===== topic =====
+    const td1 = document.createElement("td");
+    td1.className = "level-" + row.level;
 
-    // chỉ level thấp mới có toggle
     if (row.level <= 2) {
       const toggle = document.createElement("span");
-      toggle.innerText = "[+] ";
+      toggle.innerText = "[+]";
       toggle.className = "toggle";
 
-      toggle.onclick = () => toggleRow(index);
+      toggle.onclick = () => toggleRow(i);
 
-      tdTopic.appendChild(toggle);
+      td1.appendChild(toggle);
     }
 
-    tdTopic.appendChild(document.createTextNode(row.subtopic));
+    td1.appendChild(document.createTextNode(" " + row.subtopic));
 
     // ===== status =====
-    const tdStatus = document.createElement("td");
-    tdStatus.innerText = row.status;
+    const td2 = document.createElement("td");
+    td2.innerText = row.status;
+    td2.className = row.status;
 
     // ===== progress =====
-    const tdProgress = document.createElement("td");
-    tdProgress.innerText = row.progress + "%";
+    const td3 = document.createElement("td");
+    td3.innerText = row.progress + "%";
 
-    tr.appendChild(tdTopic);
-    tr.appendChild(tdStatus);
-    tr.appendChild(tdProgress);
+    tr.appendChild(td1);
+    tr.appendChild(td2);
+    tr.appendChild(td3);
 
     tbody.appendChild(tr);
   });
@@ -52,12 +46,12 @@ async function loadData() {
   const total = data.length;
   const done = data.filter(x => x.status === "done").length;
 
-  document.getElementById("kpi").innerHTML =
-    `Done: ${done}/${total} (${((done/total)*100).toFixed(1)}%)`;
+  document.getElementById("kpi").innerText =
+    `Progress: ${((done / total) * 100).toFixed(1)}%`;
 
   // ===== chart =====
   new Chart(document.getElementById("chart"), {
-    type: 'doughnut',
+    type: "doughnut",
     data: {
       labels: ["Done", "Remaining"],
       datasets: [{
@@ -67,11 +61,9 @@ async function loadData() {
   });
 }
 
-// ===== collapse logic =====
 function toggleRow(index) {
-  const rows = document.querySelectorAll("#data-table tbody tr");
-  const current = rows[index];
-  const level = parseInt(current.dataset.level);
+  const rows = document.querySelectorAll("#table-body tr");
+  const level = parseInt(rows[index].dataset.level);
 
   let i = index + 1;
 
